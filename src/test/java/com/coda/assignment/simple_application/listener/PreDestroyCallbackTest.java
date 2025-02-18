@@ -1,0 +1,52 @@
+package com.coda.assignment.simple_application.listener;
+
+import com.coda.assignment.simple_application.service.IPAddressProvider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.web.client.RestTemplate;
+
+import static org.mockito.Mockito.*;
+
+class PreDestroyCallbackTest {
+
+    @Mock
+    private IPAddressProvider ipAddressProvider;
+
+    @Mock
+    private RestTemplate restTemplate;
+
+    @InjectMocks
+    private PreDestroyCallback preDestroyCallback;
+
+    private static final String DEREGISTER_PATH = "http://loadbalancer.com/deregister";
+    private static final String APPLICATION_NAME = "simple-application-app";
+    private static final String SERVER_PORT = "8080";
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        when(ipAddressProvider.getLocalIPAddress()).thenReturn("192.168.1.100");
+        preDestroyCallback = new PreDestroyCallback(
+                ipAddressProvider,
+                restTemplate,
+                DEREGISTER_PATH,
+                APPLICATION_NAME,
+                SERVER_PORT
+        );
+    }
+
+    @Test
+    void shouldDeregisterFromLoadBalancerOnShutdown() throws Exception {
+        preDestroyCallback.destroy();
+
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(restTemplate, times(1)).getForObject(urlCaptor.capture(), eq(Object.class));
+
+        String expectedUrl = DEREGISTER_PATH + "?serviceName=" + APPLICATION_NAME + "&instanceIP=http://192.168.1.100:8080";
+        assert urlCaptor.getValue().equals(expectedUrl);
+    }
+}
