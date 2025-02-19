@@ -48,6 +48,7 @@
     </dependencies>
 
     <build>
+        <finalName>simple-application-api</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

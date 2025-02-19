@@ -1,6 +1,7 @@
 package com.coda.assignment.simple_application.listener;
 
 import com.coda.assignment.simple_application.service.IPAddressProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
+@Slf4j
 public class PreDestroyCallback implements DisposableBean {
 
     private final RestTemplate restTemplate;
@@ -30,6 +32,7 @@ public class PreDestroyCallback implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
+        log.info("DeRegistering from load balancer at : {}", healthCheckUrl);
         restTemplate.getForObject(healthCheckUrl, Object.class);
         System.out.println("Shutting Down the application on port: " + serverPort);
     }
