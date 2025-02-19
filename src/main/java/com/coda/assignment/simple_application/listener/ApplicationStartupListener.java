@@ -32,10 +32,11 @@ public class ApplicationStartupListener {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        System.out.println("ApplicationReadyEvent triggered!");
+        log.info("ApplicationReady Event triggered");
         new Thread(() -> {
             while (true) {
                 try {
+                    log.info("Sending HeartBeat to load balancer at: {}", healthCheckUrl);
                     restTemplate.getForObject(healthCheckUrl, Object.class);
                     Thread.sleep(HEARTBEAT_INTERVAL);
                 } catch (InterruptedException e) {
